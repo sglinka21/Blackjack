@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
@@ -12,15 +14,23 @@ public class GameController : MonoBehaviour
     public AudioClip audioScore;
     public GameState GameState { get; set; }
     private Deck deck;
+    public TextMeshProUGUI ResultText;
+    public Button buttonPlayAgain;
+
     void Awake()
     {
-        DealerController.Dealer = new Dealer();
-        PlayerController.Player = new Player("Player", 10000);
-        deck = new Deck();
+        
+        
     }
     // Start is called before the first frame update
     void Start()
     {
+        buttonPlayAgain.gameObject.SetActive(false);
+
+        DealerController.Dealer = new Dealer();
+        PlayerController.Player = new Player("Player", GlobalControl.Instance.myCash);
+        deck = new Deck();
+        
         GameState = new GameState(StateOfGame.Betting);
         StartCoroutine(gameProcess());
     }
@@ -97,47 +107,87 @@ public class GameController : MonoBehaviour
                         Result gameResult = (Result)GameState.Data;
                         if (gameResult == Result.DealerLoseToBlackjack)
                         {
-                            PlayerController.Player.AddCash(2*PlayerController.Player.Bet);
-                            PlayerController.Player.ResetBet();
+                            Debug.Log("Blackjack");
+                            ResultText.GetComponent<TextMeshProUGUI>().text = "Player Win - Blackjack";
+                            int addCash = 2 * PlayerController.Player.Bet;
+                            
+                            PlayerController.AddCash(addCash);
+                            //PlayerController.Player.SaveCash();
+                            PlayerController.ResetBet();
                         }
                         else
                         {
                             DealerController.showSecondCard();
-                            PlayerController.Player.ResetBet();
+                            //PlayerController.ResetBet();
                         }
                         if (gameResult == Result.DealerLose)
                         {
-                            PlayerController.Player.AddCash(2 * PlayerController.Player.Bet);
+                            ResultText.GetComponent<TextMeshProUGUI>().text = "Dealer Lose";
+                            //Debug.Log("Dealer Lose");
+                            
+                            int addCash = 2 * PlayerController.Player.Bet;
+                            
+                            PlayerController.AddCash(addCash);
+                            PlayerController.ResetBet();
+                            
+                          
+
                         }
                         else if (gameResult == Result.PlayerLose)
                         {
-                            //GameResultText.GetComponent<Text>().text = "Player Lose";
-                            PlayerController.Player.ResetBet();
+                            Debug.Log("Player Lose");
+                            ResultText.GetComponent<TextMeshProUGUI>().text = "Player Lose";
+                            
+                            
+                            PlayerController.AddCash(0);
+                            PlayerController.ResetBet();
                         }
                         else if (gameResult == Result.Tie)
                         {
-                            PlayerController.Player.BetCash(PlayerController.Player.Bet);
+                            Debug.Log("Tie");
+                            ResultText.GetComponent<TextMeshProUGUI>().text = "Tie";
+                            
+                            int betCash = PlayerController.Player.Bet;
+                            PlayerController.AddCash(0);
+                            PlayerController.BetCash(betCash);
                         }
 
-                        // Clean up...
-                        //PlayerController.Player.ResetBet();
+                       
                         PlayerController.Player.Hand.Clear();
                         DealerController.Dealer.Hand.Clear();
                         deck.ShuffleCard();
 
-                        GameState.StateOfGame = StateOfGame.WaitForRestart;
+                        if (PlayerController.Player.Cash == 0) {
+                            GoToMenu();
+                        }
+                        else
+                        {
+                            GameState.StateOfGame = StateOfGame.WaitForRestart;
+                        }
                         break;
                     }
                 case StateOfGame.WaitForRestart:
                     {
-                        GameState.StateOfGame = StateOfGame.Betting;
-                        SceneManager.LoadScene("GameScene");
+                        buttonPlayAgain.gameObject.SetActive(true);
+                        
                         break;
                     }
             }
             yield return null;
         }
     }
+
+    public void GoToMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
+    }
+
+    public void playAgain() {
+        if (GameState.StateOfGame == StateOfGame.WaitForRestart) {
+            SceneManager.LoadScene("GameScene");
+        }
+    }
+
     public void Chip10Button()
     {
         if (GameState.StateOfGame == StateOfGame.Betting)

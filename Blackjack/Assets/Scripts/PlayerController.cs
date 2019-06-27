@@ -13,10 +13,14 @@ public class PlayerController : MonoBehaviour
     public GameObject CardsObject;
     public GameObject HandObject;
     // Start is called before the first frame update
+
+   
     void Start()
     {
+        
         updateBet();
         updateCash();
+        
     }
 
     public IEnumerator AddCard(Card card)
@@ -35,6 +39,19 @@ public class PlayerController : MonoBehaviour
         Player.BetCash(amount);
         updateBet();
         updateCash();
+        Player.SaveBet();
+    }
+
+    public void AddCash(int cash) {
+        Player.AddCash(cash);
+        updateBet();
+        updateCash();
+        Player.SaveCash();
+    }
+
+    public void ResetBet() {
+        Player.ResetBet();
+        updateBet();
     }
 
     private void updateBet()

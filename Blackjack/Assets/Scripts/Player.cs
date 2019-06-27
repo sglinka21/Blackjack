@@ -6,6 +6,7 @@ public class Player
 {
     private int bet;
     private int cash;
+    
 
     public int Bet { get { return bet; } }
 
@@ -39,6 +40,7 @@ public class Player
         Hand = new Hand();
         Name = name;
         this.cash = cash;
+        
     }
 
     public bool BetCash(int amount)
@@ -60,6 +62,15 @@ public class Player
     public void AddCash(int amount)
     {
         cash += amount;
+    }
+
+    public void SaveCash() {
+        GlobalControl.Instance.myCash = cash;
+    }
+
+    public void SaveBet()
+    {
+        GlobalControl.Instance.bet = bet;
     }
 
     public void ResetBet()
